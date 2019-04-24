@@ -11,7 +11,7 @@
 #import <DTShareKit/DTOpenKit.h>
 
 @interface DCDingDingSSOModule()
-@property (nonatomic, copy) WXModuleKeepAliveCallback callback;
+@property (nonatomic, strong) WXModuleKeepAliveCallback callback;
 @end
 @implementation DCDingDingSSOModule
 
@@ -23,6 +23,13 @@ WX_EXPORT_METHOD(@selector(alert:callback:))
 
 #pragma mark - Export Method
 
+- (instancetype)init{
+    self = [super init];
+    if (self) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleLogin:) name:@"DingDingSSO" object:nil];
+    }
+    return self;
+}
 
 - (void)alert:(NSDictionary *)options callback:(WXModuleKeepAliveCallback)callback
 {
@@ -30,7 +37,7 @@ WX_EXPORT_METHOD(@selector(alert:callback:))
     _callback = callback;
     DTAuthorizeReq *authReq = [DTAuthorizeReq new];
     authReq.bundleId = @"com.yunzhiyin";
-    BOOL result = [DTOpenAPI sendReq:authReq]; 
+    BOOL result = [DTOpenAPI sendReq:authReq];
     if (result) {
         NSLog(@"授权登录 发送成功.");
     }
@@ -38,11 +45,10 @@ WX_EXPORT_METHOD(@selector(alert:callback:))
         NSLog(@"授权登录 发送失败.");
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleLogin:) name:@"DingDingSSO" object:nil];
-//    if(callback){
-//        NSDictionary *dic = @{@"result":@"发送成功 "};
-//        callback(dic,TRUE);
-//    }
+    //    if(callback){
+    //        NSDictionary *dic = @{@"result":@"发送成功 "};
+    //        callback(dic,TRUE);
+    //    }
     
 }
 
@@ -50,6 +56,10 @@ WX_EXPORT_METHOD(@selector(alert:callback:))
     if(_callback){
         _callback(noti.object,TRUE);
     }
+}
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end
